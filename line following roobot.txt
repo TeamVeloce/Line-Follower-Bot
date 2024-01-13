@@ -1,0 +1,125 @@
+int leftMotor1 = 9;
+int leftMotor2 = 8;
+int rightMotor1 = 7;
+int rightMotor2 = 6;
+#define enA 10
+#define enB 5
+
+int leftSensor1 = A3;
+int leftSensor2 = A2;
+int rightSensor1 = A1;
+int rightSensor2 = A0;
+
+
+ int M1_Speed = 150; // speed of motor 1
+ int M2_Speed = 150; // speed of motor 2
+ int LeftRotationSpeed = 0;  // Left Rotation Speed
+ int RightRotationSpeed = 0; // Right Rotation Speed
+
+
+ void setup() {
+
+  pinMode(leftMotor1, OUTPUT);
+  pinMode(leftMotor2, OUTPUT);
+  pinMode(rightMotor1, OUTPUT);
+  pinMode(rightMotor2, OUTPUT);
+  // Initialize infrared sensor pins as INPUT
+  pinMode(leftSensor1, INPUT);
+  pinMode(leftSensor2, INPUT);
+  pinMode(rightSensor1, INPUT);
+  pinMode(rightSensor2, INPUT);
+
+    pinMode(enA,OUTPUT);
+    pinMode(enB,OUTPUT);
+
+    Serial.begin(9600);
+
+
+}
+
+void loop() {
+  int leftValue1 = digitalRead(leftSensor1);
+  int leftValue2 = digitalRead(leftSensor2);
+  int rightValue1 = digitalRead(rightSensor1);
+  int rightValue2 = digitalRead(rightSensor2);
+  
+  if (leftValue2 == HIGH && rightValue1==HIGH) {
+    // At least one sensor on the line - move forward
+    Serial.println("Move forward");
+    moveForward();}
+
+  else if(leftValue1 == HIGH){
+    correctionleft();
+    
+  }
+
+  else if(rightValue2 == HIGH){
+    correctionright();
+    
+  }
+    
+  else if ((leftValue1 == HIGH  || leftValue2 == HIGH) && (rightValue2 == LOW)) {
+    //  sensor on the line - turn left
+    //Serial.println("Move forward");
+    moveleft();
+    } 
+    
+  else {
+    // No sensors on the line - stop the robot
+    Serial.println("Stop");
+    stopMotors();
+  }
+  int M1_Speed = 120; // speed of motor 1
+  int M2_Speed = 120; // speed of motor 2
+  delay(50); // Adjust the delay as needed
+
+}
+
+// Function to move the robot forward
+void moveForward() {
+  digitalWrite(leftMotor1, HIGH);
+  digitalWrite(leftMotor2, LOW);
+  digitalWrite(rightMotor1, HIGH);
+  digitalWrite(rightMotor2, LOW);
+  analogWrite(enA, M1_Speed);
+  analogWrite(enB, M2_Speed);
+}
+// Function to turn the robot left
+void moveleft() {
+  digitalWrite(leftMotor1, LOW);
+  digitalWrite(leftMotor2, LOW);
+  digitalWrite(rightMotor1, HIGH);
+  digitalWrite(rightMotor2, LOW);
+  analogWrite(enA, M1_Speed);
+  analogWrite(enB, M2_Speed);
+}
+
+void correctionleft(){
+  digitalWrite(leftMotor1, HIGH);
+  digitalWrite(leftMotor2, LOW);
+  digitalWrite(rightMotor1, HIGH);
+  digitalWrite(rightMotor2, LOW);
+  analogWrite(enA, (M1_Speed+120));
+  analogWrite(enB, M2_Speed-120);
+  
+}
+
+void correctionright(){
+  digitalWrite(leftMotor1, HIGH);
+  digitalWrite(leftMotor2, LOW);
+  digitalWrite(rightMotor1, HIGH);
+  digitalWrite(rightMotor2, LOW);
+  analogWrite(enA, (M1_Speed-120));
+  analogWrite(enB, M2_Speed+120);
+  
+}
+
+// Function to stop the robot
+void stopMotors() {
+  digitalWrite(leftMotor1, LOW);
+  digitalWrite(leftMotor2, LOW);
+  digitalWrite(rightMotor1, LOW);
+  digitalWrite(rightMotor2, LOW);
+  analogWrite(enA, 0);
+  analogWrite(enB, 0);
+}
