@@ -35,14 +35,18 @@ float Dvalue;
 
 //int M1_Speed = 120; // speed of motor 1
 //int M2_Speed = 120; // speed of motor 2
-const uint8_t SensorCount = 7;
+const uint8_t SensorCount = 8;
 uint16_t sensorValues[SensorCount];
 
+int matrix[4];
+
+int flag = 0;
+int passes = 0;
 
 void setup() {
   // put your setup code here, to run once:
   qtr.setTypeRC();
-  qtr.setSensorPins((const uint8_t[]){A0,A1,A2,A3,A4,A5,2},SensorCount);
+  qtr.setSensorPins((const uint8_t[]){A0,A1,A2,A3,A4,A5,A6,A7},SensorCount);
   Serial.begin(9600);
 
   delay(500);
@@ -59,7 +63,7 @@ void setup() {
     qtr.calibrate();
   }
   digitalWrite(LED_BUILTIN,LOW);
-  delay(10000);
+  //delay(10000);
 }
 
 void loop() {
@@ -73,12 +77,92 @@ void loop() {
 
 }
 
-void PID_Controll() {
+void matrixCalc(int error1)
+{
+  
+  //Serial.println(error1);
   positionLine = qtr.readLineBlack(sensorValues);
   
-  int error = 3000 - positionLine;
+  int error2 = 3500 - positionLine;
+  //Serial.println(error2);
+  unsigned long start = millis();
+
+  unsigned long error_change = error2 - error1 ;
+
+  if(error_change < -4000 || error_change > -5500)
+  {
+    unsigned long stop = millis();
+    if((stop - start) < 100000)
+    {
+      if(error1>3450 || error1 <3550)
+      {
+        matrix[1] = 1;
+        matrix[0] = 0;
+        if(error2>-1850 || error2 <-1450)
+          {
+            matrix[3] = 0;
+            matrix[2] = 1;
+          }
+          flag = 1;
+      }
+    if(passes == 0)
+    {
+    for(int i=3 ; i>=0 ; i--)
+    {
+      Serial.print(matrix[i]);
+    }
+    Serial.println();
+    passes=1;
+    }
+    //continue;
+
+  }
+  }
+  /*
+  if(error_change >950 || error_change < 1050 ||error_change <-950 || error_change > -1050 || error_change > -50 || error_change <50 )
+  {
+    unsigned long stop = millis();
+    if((stop - start) < 50)
+    {
+      if(error1>450 || error1 <550)
+      {
+        matrix[1] = '1';
+        matrix[0] = '0';
+        if(error2>-50 || error2 <50)
+          {
+            matrix[1] = '1';
+            matrix[0] = '0';
+          }
+      }
+
+      for(int i=0 ; i<4 ; i++)
+    {
+      Serial.print(matrix[i]);
+    }
+    Serial.println();
+
+    //fla
+      
+    }
+    
+  }*/
+}
+
+void PID_Controll() {
+  positionLine = qtr.readLineBlack(sensorValues);
+
+  unsigned long pass_time = millis();
+  
+  int error = 3500 - positionLine;
+  if(error== 3500 || error == -1500)
+  {
+      matrixCalc(error);
+
+  }
+
+  //matrixCalc(error);
   //Serial.print(error);
-  Serial.println(error);
+  //Serial.println(error);
   while(sensorValues[0]>=980 && sensorValues[1]>=980 && sensorValues[2]>=980 && sensorValues[3]>=980 && sensorValues[4]>=980 && sensorValues[5]>=980 && sensorValues[6]>=980){ // A case when the line follower leaves the line
     if(lastError>0){       //Turn left if the line was to the left before
       motor_drive(-230,230);
